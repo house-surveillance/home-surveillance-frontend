@@ -10,14 +10,26 @@ axios.defaults.timeout = 120000; // Milliseconds
 
 axios.interceptors.request.use(
   async function (config) {
-    const userLocalStorage = localStorage.getItem("user");
+    const userLocalStorage = sessionStorage.getItem("user");
     const user = userLocalStorage ? JSON.parse(userLocalStorage) : null;
 
     if (user?.token) {
       config.headers["Authorization"] = `Bearer ${user?.token}`;
       config.headers["Access-Control-Allow-Credentials"] = true;
+    } else {
+      if (
+        window.location.pathname !== "/login" &&
+        window.location.pathname !== "/register"
+      ) {
+        window.location.href = "/login";
+      }
     }
-    config.headers["Content-Type"] = "application/json";
+    if (config.data instanceof FormData) {
+      config.headers["Content-Type"] = "multipart/form-data";
+    } else {
+      config.headers["Content-Type"] = "application/json";
+    }
+
     config.baseURL = baseURL;
 
     return config;

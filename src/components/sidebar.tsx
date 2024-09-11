@@ -4,16 +4,21 @@ import SimpleBar from "simplebar-react";
 import "simplebar-react/dist/simplebar.min.css";
 import { sidebarStructure } from "./structure";
 import { Link } from "react-router-dom";
+import {
+  ArrowLeftEndOnRectangleIcon,
+  BellAlertIcon,
+  UsersIcon,
+  VideoCameraIcon,
+} from "@heroicons/react/24/outline";
 
 interface SidebarProps {
   setExpand: (value: boolean) => void;
 }
 
 const Sidebar: FC<SidebarProps> = ({ setExpand }) => {
-  const username = "Miner Lozano";
-  const company = "Unilever";
-  const profilePic =
-    "https://img.mbiz.web.id/180x180/erp/R2p1IXoyVEpBMk01WOEAdaI3hHVlkuIg0wW5_pn-CJCKHSrA_n1-U1tfE7Bl5H4_4Z7AxgL0DPOmUCdPuCHHC5lWvMU5Ig3t1uDrkVN53MlWlnA";
+  const userLocalStorage = sessionStorage.getItem("user");
+  const user = userLocalStorage ? JSON.parse(userLocalStorage) : null;
+  const isAdmin = !!user?.roles?.includes("ADMIN");
   const link = "/";
 
   const [openedMenu, setOpenedMenu] = useState<Record<string, any>>({});
@@ -79,81 +84,112 @@ const Sidebar: FC<SidebarProps> = ({ setExpand }) => {
 
     return (
       <li key={index}>
-        <Link
-          to={item.link}
-          role="button"
-          tabIndex={0}
-          id={item.id}
-          onClick={() => {
-            if ("child" in item) {
-              handleToggle(item.name);
-            } else if ("link" in item) {
-              handleNavigate(item.name);
-            }
-          }}
-          onKeyDown={(event) => {
-            const { code } = event;
-            if (code === "Space") {
+        {item.action ? (
+          <div className="pt-40">
+            <button
+              role="button"
+              tabIndex={0}
+              id={item.id}
+              onClick={() => {
+                item.action();
+                //handleNavigate(item.name);
+              }}
+              className="sidebar-item flex justify-center items-center p-2 text-base text-slate-500 rounded-lg hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 w-full"
+            >
+              <ArrowLeftEndOnRectangleIcon className="w-6 h-6 text-blue-500" />
+              <div
+                className={`truncate ${
+                  isExpand ? "" : isExpandOnHover ? "" : "w-0 h-0 opacity-0"
+                }`}
+              >
+                {item.title}
+              </div>
+            </button>
+          </div>
+        ) : (
+          <Link
+            to={item.link}
+            role="button"
+            tabIndex={0}
+            id={item.id}
+            onClick={() => {
+              if (item.action) {
+                item.action();
+              }
+
               if ("child" in item) {
                 handleToggle(item.name);
               } else if ("link" in item) {
                 handleNavigate(item.name);
               }
-            }
-          }}
-          className={[
-            "group m-0 flex cursor-pointer rounded-lg items-center justify-between h-12 py-0 pr-3 mb-1 focus:outline-none",
-            recursive === 0 ? "pl-4" : recursive === 1 ? "pl-11" : "pl-16",
-            activeName === item.name || activeName.split(".")[0] === item.name
-              ? `text-blue-600 font-semibold ${
-                  item.parent ? "bg-blue-200/20 " : "bg-transparent"
-                }`
-              : `text-slate-500 ${item.parent && ""}`,
-            "hover:bg-slate-300/20",
-            classesActive,
-          ].join(" ")}
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-3 w-3 flex items-center justify-center">
-              <div
-                className={[
-                  `${classesActive ? "h-2 w-2" : "h-1 w-1"}`,
-                  "bg-current rounded-full duration-200",
-                ].join(" ")}
-              ></div>
-            </div>
+            }}
+            onKeyDown={(event) => {
+              const { code } = event;
+              if (code === "Space") {
+                if ("child" in item) {
+                  handleToggle(item.name);
+                } else if ("link" in item) {
+                  handleNavigate(item.name);
+                }
+              }
+            }}
+            className={[
+              "group m-0 flex cursor-pointer rounded-lg items-center justify-between h-12 py-0 pr-3 mb-1 focus:outline-none",
+              recursive === 0 ? "pl-2" : recursive === 1 ? "pl-11" : "pl-16",
+              activeName === item.name || activeName.split(".")[0] === item.name
+                ? `text-blue-600 font-semibold ${
+                    item.parent ? "bg-blue-200/20 " : "bg-transparent"
+                  }`
+                : `text-slate-500 ${item.parent && ""}`,
+              "hover:bg-slate-300/20",
+              classesActive,
+            ].join(" ")}
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-3 w-3 flex items-center justify-center">
+                <div
+                  className={[
+                    `${classesActive ? "h-2 w-2" : "h-1 w-1"}`,
+                    "bg-current rounded-full duration-200",
+                  ].join(" ")}
+                ></div>
+              </div>
 
-            <div
-              className={`truncate ${
-                isExpand ? "" : isExpandOnHover ? "" : "w-0 h-0 opacity-0"
-              }`}
-            >
-              {item.title}
+              <div className="flex items-center gap-2">
+                {generateIcons(item.icon)}
+                <div
+                  className={`truncate ${
+                    isExpand ? "" : isExpandOnHover ? "" : "w-0 h-0 opacity-0"
+                  }`}
+                >
+                  {item.title}
+                </div>
+              </div>
             </div>
-          </div>
-          {"child" in item ? (
-            <div
-              className={`${
-                isExpand ? "" : isExpandOnHover ? "" : "w-0 h-0 opacity-0"
-              }`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+            {"child" in item ? (
+              <div
+                className={`${
+                  isExpand ? "" : isExpandOnHover ? "" : "w-0 h-0 opacity-0"
+                }`}
               >
-                <path
-                  fillRule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-          ) : (
-            false
-          )}
-        </Link>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            ) : (
+              false
+            )}
+          </Link>
+        )}
         {"child" in item ? (
           <ul
             ref={(el) => (listRef.current[item.name] = el)}
@@ -173,6 +209,22 @@ const Sidebar: FC<SidebarProps> = ({ setExpand }) => {
         )}
       </li>
     );
+  };
+
+  const generateIcons = (icon: string) => {
+    if (icon === "") {
+      return "";
+    }
+
+    if (icon === "users") {
+      return <UsersIcon className="w-6 h-6 text-blue-500" />;
+    }
+    if (icon === "video-camera") {
+      return <VideoCameraIcon className="w-6 h-6 text-blue-500" />;
+    }
+    if (icon === "notifications") {
+      return <BellAlertIcon className="w-6 h-6 text-blue-500" />;
+    }
   };
 
   return (
@@ -233,21 +285,25 @@ const Sidebar: FC<SidebarProps> = ({ setExpand }) => {
                       : "h-12 w-12"
                   }`}
                 >
-                  <img src={profilePic} className="block" alt="" />
+                  <img
+                    src={user?.profile?.imageUrl}
+                    className="block"
+                    alt="user profile image"
+                  />
                 </div>
                 <div
                   className={`text-base font-semibold text-slate-700 mt-3 truncate duration-300 ${
                     isExpand ? "" : isExpandOnHover ? "" : "w-0 h-0 opacity-0"
                   }`}
                 >
-                  {username}
+                  {user?.profile?.fullName}
                 </div>
                 <div
                   className={`duration-300 text-sm text-slate-500 truncate ${
                     isExpand ? "" : isExpandOnHover ? "" : "w-0 h-0 opacity-0"
                   }`}
                 >
-                  {company}
+                  {isAdmin ? "ADMIN" : "RESIDENT"}
                 </div>
               </a>
             </div>

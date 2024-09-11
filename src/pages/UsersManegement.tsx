@@ -3,15 +3,14 @@ import { getUsers } from "../api/services/user";
 
 export default function UsersManegement() {
   const [users, setUsers] = useState([]);
-  console.log("🚀 ~ UsersManegement ~ users:", users);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await getUsers();
         setUsers(response);
-      } catch (error) {
-        console.error(error);
+      } catch (error: Error | any) {
+        console.error(error?.message ?? "Error fetching users");
       }
     };
 

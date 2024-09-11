@@ -9,7 +9,6 @@ export default function RealTimeFacialRecognition() {
   const webcamRef = useRef<Webcam>(null);
   const [usersDetected, setUsersDetected] = useState<string[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  console.log("🚀 ~ RealTimeFacialRecognition ~ users:", users);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -26,8 +25,8 @@ export default function RealTimeFacialRecognition() {
         });
 
         setUsers(dataMapped);
-      } catch (error) {
-        console.error(error);
+      } catch (error: Error | any) {
+        console.error(error?.message ?? "Error fetching users");
       }
     };
 
@@ -38,7 +37,7 @@ export default function RealTimeFacialRecognition() {
     const loadModels = async () => {
       try {
         const MODEL_URL = "/models";
-        console.log("Cargando modelos desde: ", MODEL_URL);
+
         await Promise.all([
           faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
           faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -46,7 +45,9 @@ export default function RealTimeFacialRecognition() {
           faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
         ]);
         setIsModelLoaded(true);
-      } catch (error) {}
+      } catch (error: Error | any) {
+        console.error(error?.message ?? "Error loading models");
+      }
     };
     loadModels();
   }, []);
