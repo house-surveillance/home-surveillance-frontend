@@ -3,7 +3,7 @@ import Axios from "axios";
 
 const axios = Axios.create({});
 
-const serverUrl = "http://localhost:3000/api/v1";
+const serverUrl = "http://localhost:3000/api/v1"; //"https://c6d1-179-6-4-169.ngrok-free.app/api/v1";
 export const baseURL = `${serverUrl}`;
 
 axios.defaults.timeout = 120000; // Milliseconds
@@ -30,6 +30,8 @@ axios.interceptors.request.use(
       config.headers["Content-Type"] = "application/json";
     }
 
+    config.headers["ngrok-skip-browser-warning"] = "true";
+
     config.baseURL = baseURL;
 
     return config;
@@ -50,6 +52,9 @@ axios.interceptors.response.use(
     if (error?.response?.status === 401) {
       alert("Your session has expired. Please log in again.");
       window.location.href = "/login";
+    }
+    if (error?.code === "ERR_NETWORK") {
+      alert("Network error. Please try again later.");
     }
     throw error;
   }

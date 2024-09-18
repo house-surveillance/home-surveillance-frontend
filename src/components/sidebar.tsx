@@ -3,7 +3,7 @@ import { FC, useRef, useState } from "react";
 import SimpleBar from "simplebar-react";
 import "simplebar-react/dist/simplebar.min.css";
 import { sidebarStructure } from "./structure";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeftEndOnRectangleIcon,
   BellAlertIcon,
@@ -16,6 +16,8 @@ interface SidebarProps {
 }
 
 const Sidebar: FC<SidebarProps> = ({ setExpand }) => {
+  const navigate = useNavigate();
+
   const userLocalStorage = sessionStorage.getItem("user");
   const user = userLocalStorage ? JSON.parse(userLocalStorage) : null;
   const isAdmin = !!user?.roles?.includes("ADMIN");
@@ -92,6 +94,7 @@ const Sidebar: FC<SidebarProps> = ({ setExpand }) => {
               id={item.id}
               onClick={() => {
                 item.action();
+                navigate("/login");
                 //handleNavigate(item.name);
               }}
               className="sidebar-item flex justify-center items-center p-2 text-base text-slate-500 rounded-lg hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 w-full"
@@ -269,7 +272,7 @@ const Sidebar: FC<SidebarProps> = ({ setExpand }) => {
         onMouseLeave={() => handleHoverExpand(false)}
         className={`relative h-screen overflow-hidden`}
       >
-        <SimpleBar style={{ height: "100%" }} autoHide timeout={100}>
+        <SimpleBar style={{ height: "100%" }} autoHide>
           <div className="text-slate-500">
             <div className="my-8 flex flex-col items-center h-44 overflow-x-hidden">
               <a

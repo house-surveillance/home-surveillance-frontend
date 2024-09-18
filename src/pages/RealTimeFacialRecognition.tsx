@@ -3,6 +3,7 @@ import * as faceapi from "face-api.js";
 import Webcam from "react-webcam";
 import { VideoCamera } from "../components/VideoCamera";
 import { getUsers } from "../api/services/user";
+import { registerNotification } from "../api/services/notifications";
 
 export default function RealTimeFacialRecognition() {
   const [isModelLoaded, setIsModelLoaded] = useState(false);
@@ -10,7 +11,14 @@ export default function RealTimeFacialRecognition() {
   const [usersDetected, setUsersDetected] = useState<string[]>([]);
   const [users, setUsers] = useState<any[]>([]);
 
+  const [notificationQueue, setNotificationQueue] = useState<any[]>([]);
+
+  const [lastNotificationTimes, setLastNotificationTimes] = useState<{
+    [key: string]: number;
+  }>({});
+
   useEffect(() => {
+    console.log(lastNotificationTimes);
     const fetchUsers = async () => {
       try {
         const response = await getUsers();
@@ -20,7 +28,7 @@ export default function RealTimeFacialRecognition() {
             id: user.id,
             face: user?.face?.labeledDescriptors
               ? JSON.parse(user?.face?.labeledDescriptors)
-              : [],
+              : null,
           };
         });
 
@@ -52,6 +60,57 @@ export default function RealTimeFacialRecognition() {
     loadModels();
   }, []);
 
+  const sendNotification = async (type: string, label: string, image: File) => {
+    try {
+      const response = await registerNotification(type, label, image);
+
+      if (response.ok) {
+      } else {
+        console.error("Error sending notification");
+      }
+    } catch (error: Error | any) {
+      console.error(error?.message ?? "Error sending notification");
+    }
+  };
+
+  const captureImage = (): Promise<File | null> => {
+    return new Promise((resolve, reject) => {
+      if (webcamRef.current) {
+        const canvas = document.createElement("canvas");
+        const video = webcamRef.current.video as HTMLVideoElement;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext("2d");
+        context?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], "capture.png", { type: "image/png" });
+            resolve(file);
+          } else {
+            reject(new Error("Failed to capture image"));
+          }
+        }, "image/png");
+      } else {
+        resolve(null);
+      }
+    });
+  };
+
+  useEffect(() => {
+    const processQueue = async () => {
+      if (notificationQueue.length > 0) {
+        const { type, image, label } = notificationQueue[0];
+        await sendNotification(type, label, image);
+        setNotificationQueue((prev) => prev.slice(1));
+      }
+    };
+
+    if (notificationQueue.length > 0) {
+      processQueue();
+    }
+  }, [notificationQueue]);
+
   const detectFace = async () => {
     setUsersDetected([]);
 
@@ -69,11 +128,12 @@ export default function RealTimeFacialRecognition() {
         .withFaceLandmarks()
         .withFaceDescriptors();
 
-      const distanceThreshold = 0.6;
+      const distanceThreshold = 0.7;
 
       if (detections.length > 0) {
-        const labeledFaceDescriptors = users.map((user: any) => {
+        const labeledFaceDescriptors = users?.map((user: any) => {
           const labeledDescriptorsJson = user.face;
+          if (!labeledDescriptorsJson) return null;
 
           const modifiedDescriptors = labeledDescriptorsJson.map(
             (labelDescriptor: any) => {
@@ -95,7 +155,7 @@ export default function RealTimeFacialRecognition() {
         });
 
         const recognizer = new faceapi.FaceMatcher(
-          labeledFaceDescriptors,
+          labeledFaceDescriptors.filter(Boolean),
           distanceThreshold
         );
 
@@ -110,8 +170,72 @@ export default function RealTimeFacialRecognition() {
               const detectedLabel = matchedUser
                 ? matchedUser.fullName ?? "unknown"
                 : "unknown";
+
+              setLastNotificationTimes((prevTimes) => {
+                const currentTime = Date.now();
+                const lastNotificationTime = prevTimes[detectedLabel] || 0;
+                const time = detectedLabel === "unknown" ? 10000 : 120000;
+                if (currentTime - lastNotificationTime > time) {
+                  captureImage()
+                    .then((image) => {
+                      if (image) {
+                        setNotificationQueue((prev) => [
+                          ...prev,
+                          {
+                            type: detectedLabel ? `Verified` : `Unverified`,
+                            image,
+                            label: detectedLabel,
+                            currentTime,
+                          },
+                        ]);
+                      }
+                    })
+                    .catch((error) => {
+                      console.error("Error capturing image:", error);
+                    });
+
+                  return {
+                    ...prevTimes,
+                    [detectedLabel]: currentTime,
+                  };
+                }
+
+                return prevTimes;
+              });
+
               setUsersDetected((prev) => [...prev, detectedLabel]);
             } else {
+              setLastNotificationTimes((prevTimes) => {
+                const currentTime = Date.now();
+                const lastNotificationTime = prevTimes["unknown"] || 0;
+
+                if (currentTime - lastNotificationTime > 10000) {
+                  captureImage()
+                    .then((image) => {
+                      if (image) {
+                        setNotificationQueue((prev) => [
+                          ...prev,
+                          {
+                            type: `Not Verified`,
+                            image,
+                            label: "unknown",
+                            currentTime,
+                          },
+                        ]);
+                      }
+                    })
+                    .catch((error) => {
+                      console.error("Error capturing image:", error);
+                    });
+
+                  return {
+                    ...prevTimes,
+                    ["unknown"]: currentTime,
+                  };
+                }
+
+                return prevTimes;
+              });
               setUsersDetected((prev) => {
                 return [...prev, "unknown"];
               });
@@ -126,7 +250,7 @@ export default function RealTimeFacialRecognition() {
 
   useEffect(() => {
     if (!isModelLoaded) return;
-    const interval = setInterval(detectFace, 1000);
+    const interval = setInterval(detectFace, 1500);
     return () => clearInterval(interval);
   }, [isModelLoaded]);
 

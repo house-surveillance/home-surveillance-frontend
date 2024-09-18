@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Sidebar from "../components/sidebar";
 import { Outlet } from "react-router-dom";
+import NotificationAlert from "../components/NotificationAlert";
 
 const Layout = () => {
   const [sideMenuIsExpand, setSideMenuIsExpand] = useState(true);
@@ -18,6 +19,7 @@ const Layout = () => {
           sideMenuIsExpand ? "md:ml-72" : "md:ml-20"
         }`}
       >
+        <NotificationAlert />
         <main>
           <Outlet />
         </main>

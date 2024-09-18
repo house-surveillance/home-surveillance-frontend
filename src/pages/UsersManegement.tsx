@@ -1,13 +1,83 @@
 import { useEffect, useState } from "react";
 import { getUsers } from "../api/services/user";
+import ImageUploadModal from "../components/ImagesUploadModal";
+import { registerFaceToModel } from "../api/services/recognition";
+import NewUserModal from "../components/NewUserModal";
 
 export default function UsersManegement() {
   const [users, setUsers] = useState([]);
+  const [faces, setFaces] = useState<File[]>([]);
+  const cleanFaces = () => {
+    setFaces([]);
+  };
 
+  const registerFace = async (userId: string) => {
+    if (faces.length === 0 || faces.length < 4) {
+      cleanFaces();
+      alert("4 images are required to register a face");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("userID", userId);
+
+    for (const file of faces) {
+      if (!file) {
+        cleanFaces();
+        alert("Please select 4 images");
+        return;
+      }
+      formData.append("files", file);
+    }
+
+    try {
+      await registerFaceToModel(formData);
+      alert("Faces registered successfully");
+      cleanFaces();
+      window.location.reload();
+    } catch (error: any) {
+      cleanFaces();
+      console.error("Error registering faces:", error);
+      alert(error?.message ?? "Error registering faces");
+    }
+  };
+
+  const [modals, setModals] = useState({
+    faceRegister: {
+      isOpen: false,
+      handleOpen: () => {
+        setModals((prevModals) => ({
+          ...prevModals,
+          faceRegister: { ...prevModals.faceRegister, isOpen: true },
+        }));
+      },
+      onClose: () => {
+        setModals((prevModals) => ({
+          ...prevModals,
+          faceRegister: { ...prevModals.faceRegister, isOpen: false },
+        }));
+      },
+    },
+    newUser: {
+      isOpen: false,
+      handleOpen: () => {
+        setModals((prevModals) => ({
+          ...prevModals,
+          newUser: { ...prevModals.newUser, isOpen: true },
+        }));
+      },
+      onClose: () => {
+        setModals((prevModals) => ({
+          ...prevModals,
+          newUser: { ...prevModals.newUser, isOpen: false },
+        }));
+      },
+    },
+  });
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await getUsers();
+        console.log("🚀 ~ fetchUsers ~ response:", response)
         setUsers(response);
       } catch (error: Error | any) {
         console.error(error?.message ?? "Error fetching users");
@@ -18,8 +88,16 @@ export default function UsersManegement() {
   }, []);
 
   return (
-    <div className="flex flex-col justify-start p-52 w-full h-svh">
-      <h1 className="text-2xl font-semibold p-5">Users Management</h1>
+    <div className="flex flex-col justify-start py-44 px-20  w-full h-svh">
+      <div className="flex  justify-between items-center">
+        <h1 className="text-2xl font-semibold p-5">Users Management</h1>
+        <button
+          className="px-2 h-10 text-xs font-semibold text-white bg-blue-500 rounded"
+          onClick={() => modals.newUser.handleOpen()}
+        >
+          new user
+        </button>
+      </div>
       {users.map((user: any) => (
         <div
           key={user.id}
@@ -72,13 +150,28 @@ export default function UsersManegement() {
               >
                 Update
               </button>
+              <ImageUploadModal
+                userId={user.id.toString()}
+                isOpen={modals.faceRegister.isOpen}
+                onClose={modals.faceRegister.onClose}
+                images={faces}
+                registerFace={registerFace}
+                setImages={setFaces}
+              />
 
-              <button
-                className="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded"
-                // onClick={() => handleRegisterFace(user.id)}
-              >
-                register face
-              </button>
+              <NewUserModal
+                isOpen={modals.newUser.isOpen}
+                onClose={modals.newUser.onClose}
+              />
+
+              {user?.profile?.status === "UNVERIFIED" && (
+                <button
+                  className="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded"
+                  onClick={() => modals.faceRegister.handleOpen()}
+                >
+                  register face
+                </button>
+              )}
             </div>
           </div>
         </div>

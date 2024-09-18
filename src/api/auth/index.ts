@@ -19,7 +19,8 @@ export const register = async (
   password: string,
   roles: Array<"ADMIN" | "RESIDENT">,
   fullName: string,
-  imageProfile: File
+  imageProfile: File,
+  isAuth: boolean = true
 ) => {
   try {
     const formData = new FormData();
@@ -35,7 +36,10 @@ export const register = async (
         "Content-Type": "multipart/form-data",
       },
     });
-    sessionStorage.setItem("user", JSON.stringify(response.data));
+
+    if (isAuth) {
+      sessionStorage.setItem("user", JSON.stringify(response.data));
+    }
     //return response.data;
   } catch (error) {
     throw error;
@@ -44,5 +48,4 @@ export const register = async (
 
 export const logout = () => {
   sessionStorage.removeItem("user");
-  window.location.href = "/login";
 };
