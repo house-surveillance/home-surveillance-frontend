@@ -14,13 +14,16 @@ export const getNotifications = async () => {
 export const registerNotification = async (
   type: string,
   label: string,
-  image: File
+  image: File,
+  fcmTokens: string[]
 ) => {
   try {
+    const phoneTokens = fcmTokens.join(",");
     const formData = new FormData();
     formData.append("type", type);
     formData.append("label", label);
     formData.append("file", image);
+    formData.append("fcmTokens", phoneTokens);
 
     const response = await axiosConfig.post(NOTIFICATIONS_URL, formData, {
       headers: {

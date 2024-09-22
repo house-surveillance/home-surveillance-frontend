@@ -9,6 +9,8 @@ export default function RealTimeFacialRecognition() {
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const webcamRef = useRef<Webcam>(null);
   const [usersDetected, setUsersDetected] = useState<string[]>([]);
+
+  const [fcmTokens, setFcmTokens] = useState<string[]>([]);
   const [users, setUsers] = useState<any[]>([]);
 
   const [notificationQueue, setNotificationQueue] = useState<any[]>([]);
@@ -31,6 +33,10 @@ export default function RealTimeFacialRecognition() {
               : null,
           };
         });
+
+        setFcmTokens(
+          response.map((user: any) => user.fcmToken).filter(Boolean)
+        );
 
         setUsers(dataMapped);
       } catch (error: Error | any) {
@@ -62,7 +68,12 @@ export default function RealTimeFacialRecognition() {
 
   const sendNotification = async (type: string, label: string, image: File) => {
     try {
-      const response = await registerNotification(type, label, image);
+      const response = await registerNotification(
+        type,
+        label,
+        image,
+        fcmTokens
+      );
 
       if (response.ok) {
       } else {
@@ -128,7 +139,7 @@ export default function RealTimeFacialRecognition() {
         .withFaceLandmarks()
         .withFaceDescriptors();
 
-      const distanceThreshold = 0.7;
+      const distanceThreshold = 0.6;
 
       if (detections.length > 0) {
         const labeledFaceDescriptors = users?.map((user: any) => {
