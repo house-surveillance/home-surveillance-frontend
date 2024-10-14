@@ -19,11 +19,13 @@ export default function RealTimeFacialRecognition() {
     [key: string]: number;
   }>({});
 
+  const userLoggedIn = JSON.parse(sessionStorage?.getItem("user") ?? "");
+
   useEffect(() => {
     console.log(lastNotificationTimes);
     const fetchUsers = async () => {
       try {
-        const response = await getUsers();
+        const response = await getUsers(userLoggedIn?.id);
         const dataMapped = response.map((user: any) => {
           return {
             fullName: user.profile.fullName,

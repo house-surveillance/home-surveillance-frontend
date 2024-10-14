@@ -1,15 +1,28 @@
 import { useEffect, useState } from "react";
-import { getUsers } from "../api/services/user";
+import { deleteUser, getUsers } from "../api/services/user";
 import ImageUploadModal from "../components/ImagesUploadModal";
 import { registerFaceToModel } from "../api/services/recognition";
 import NewUserModal from "../components/NewUserModal";
+import {
+  CameraIcon,
+  PencilIcon,
+  TrashIcon,
+  UserPlusIcon,
+} from "@heroicons/react/24/outline";
+import EditUserModal from "../components/EditUser";
 
 export default function UsersManegement() {
   const [users, setUsers] = useState([]);
   const [faces, setFaces] = useState<File[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+
   const cleanFaces = () => {
     setFaces([]);
   };
+
+  const user = JSON.parse(sessionStorage?.getItem("user") ?? "");
+  const isAdmin = user?.roles?.includes("ADMIN");
+  const userId = user?.id;
 
   const registerFace = async (userId: string) => {
     if (faces.length === 0 || faces.length < 4) {
@@ -72,12 +85,27 @@ export default function UsersManegement() {
         }));
       },
     },
+    editUser: {
+      isOpen: false,
+      handleOpen: () => {
+        setModals((prevModals) => ({
+          ...prevModals,
+          editUser: { ...prevModals.editUser, isOpen: true },
+        }));
+      },
+      onClose: () => {
+        setModals((prevModals) => ({
+          ...prevModals,
+          editUser: { ...prevModals.editUser, isOpen: false },
+        }));
+      },
+    },
   });
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await getUsers();
-        console.log("🚀 ~ fetchUsers ~ response:", response)
+        const response = await getUsers(userId);
         setUsers(response);
       } catch (error: Error | any) {
         console.error(error?.message ?? "Error fetching users");
@@ -87,25 +115,58 @@ export default function UsersManegement() {
     fetchUsers();
   }, []);
 
+  async function deteleUser(id: any) {
+    try {
+      const newUsers = users.filter((user: any) => user.id !== id);
+      const response = await deleteUser(id);
+      if (response.status === 200) {
+        alert("User deleted successfully");
+        setUsers([...newUsers]);
+      } else {
+        alert("Error deleting user, try later");
+      }
+    } catch (error: Error | any) {
+      console.error(error?.message ?? "Error deleting user");
+    }
+  }
+  const handleEditUser = (user: any) => {
+    setSelectedUser(user);
+    modals.editUser.handleOpen();
+  };
+
+  const handleFaceRegister = (user: any) => {
+    setSelectedUser(user);
+    modals.faceRegister.handleOpen();
+  };
+
   return (
     <div className="flex flex-col justify-start py-44 px-20  w-full h-svh">
+      <div className="flex flex-row justify-between items-center">
+        <h2 className="text-xl font-semibold p-5 bg-cyan-400 rounded-md">
+          {user?.residence?.name}
+        </h2>
+        <h3 className="text-xl font-semibold p-5 text-gray-500">
+          {user?.residence?.address}
+        </h3>
+      </div>
       <div className="flex  justify-between items-center">
         <h1 className="text-2xl font-semibold p-5">Users Management</h1>
         <button
-          className="px-2 h-10 text-xs font-semibold text-white bg-blue-500 rounded"
+          className="px-2 h-10 text-xs font-semibold text-blue-700 rounded"
           onClick={() => modals.newUser.handleOpen()}
+          hidden={!isAdmin}
         >
-          new user
+          <UserPlusIcon className="w-5 h-5" />
         </button>
       </div>
       {users.map((user: any) => (
         <div
-          key={user.id}
+          key={crypto.randomUUID()}
           className="flex justify-between gap-x-6 p-2 border-b-2 "
         >
           <div className="flex min-w-0 gap-x-4">
             <img
-              className="h-12 w-12 flex-none rounded-full bg-gray-50"
+              className="h-16 w-16 flex-none rounded-full bg-gray-50"
               src={user.profile.imageUrl}
               alt="user image profile"
             />
@@ -134,8 +195,8 @@ export default function UsersManegement() {
               </div>
             ) : (
               <div className="mt-1 flex items-center gap-x-1.5">
-                <div className="flex-none rounded-full bg-green-800 p-1">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-600"></div>
+                <div className="flex-none rounded-full bg-red-500/20 p-1">
+                  <div className="h-1.5 w-1.5 rounded-full bg-orange-500"></div>
                 </div>
                 <p className="text-xs leading-5 text-gray-500">
                   {user?.profile?.status}
@@ -143,39 +204,63 @@ export default function UsersManegement() {
               </div>
             )}
 
-            <div className="mt-2 flex gap-x-2">
-              <button
-                className="px-2 py-1 text-xs font-semibold text-white bg-blue-500 rounded"
-                //onClick={() => handleEdit(user.id)}
-              >
-                Update
-              </button>
-              <ImageUploadModal
-                userId={user.id.toString()}
-                isOpen={modals.faceRegister.isOpen}
-                onClose={modals.faceRegister.onClose}
-                images={faces}
-                registerFace={registerFace}
-                setImages={setFaces}
-              />
-
-              <NewUserModal
-                isOpen={modals.newUser.isOpen}
-                onClose={modals.newUser.onClose}
-              />
-
-              {user?.profile?.status === "UNVERIFIED" && (
+            <div className="mt-1 flex gap-x-2">
+              {(isAdmin || userId === user.id) && (
                 <button
-                  className="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded"
-                  onClick={() => modals.faceRegister.handleOpen()}
+                  className="px-2 py-1 text-xs font-semibold  text-green-700 rounded"
+                  onClick={() => handleEditUser(user)}
                 >
-                  register face
+                  <PencilIcon className="h-4 w-4" />
+                </button>
+              )}
+
+              {user?.profile?.status === "UNVERIFIED" &&
+                (isAdmin || userId === user.id) && (
+                  <button
+                    className="px-2 py-1 text-xs font-semibold text-blue-700 rounded"
+                    onClick={() => handleFaceRegister(user)}
+                  >
+                    <CameraIcon className="h-5 w-5" />
+                  </button>
+                )}
+              {isAdmin && (
+                <button
+                  className="p1 text-xs font-semibold text-red-700 rounded"
+                  onClick={() => deteleUser(user.id)}
+                >
+                  <TrashIcon className="h-5 w-5" />
                 </button>
               )}
             </div>
           </div>
         </div>
       ))}
+
+      {modals.faceRegister.isOpen && selectedUser && (
+        <ImageUploadModal
+          userId={selectedUser.id.toString()}
+          isOpen={modals.faceRegister.isOpen}
+          onClose={modals.faceRegister.onClose}
+          images={faces}
+          registerFace={registerFace}
+          setImages={setFaces}
+        />
+      )}
+
+      {modals.newUser.isOpen && (
+        <NewUserModal
+          isOpen={modals.newUser.isOpen}
+          onClose={modals.newUser.onClose}
+        />
+      )}
+
+      {modals.editUser.isOpen && selectedUser && (
+        <EditUserModal
+          isOpen={modals.editUser.isOpen}
+          onClose={modals.editUser.onClose}
+          data={selectedUser}
+        />
+      )}
     </div>
   );
 }

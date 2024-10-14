@@ -35,3 +35,12 @@ export const registerNotification = async (
     throw error;
   }
 };
+
+export const deleteNotification = async (id: any) => {
+  try {
+    const response = await axiosConfig.delete(`${NOTIFICATIONS_URL}/${id}`);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};

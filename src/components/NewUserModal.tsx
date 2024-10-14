@@ -18,6 +18,8 @@ const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const admin = JSON.parse(sessionStorage.getItem("user") ?? "");
+
   if (!isOpen) return null;
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -28,6 +30,9 @@ const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
     }
 
     try {
+      const adminId = admin?.id;
+      if (!adminId) return;
+
       await register(
         username,
         email,
@@ -35,7 +40,10 @@ const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
         ["RESIDENT"],
         fullName,
         image!,
-        false
+        "0",
+        "0",
+        false,
+        adminId
       );
       navigate("/users");
       window.location.reload();
