@@ -277,15 +277,20 @@ export default function RealTimeFacialRecognition() {
   }, [isModelLoaded]);
 
   return (
-    <div className="flex flex-row justify-center items-center h-screen bg-gray-200">
+    <div className="flex flex-col justify-center items-center h-screen bg-gray-200">
       <div className="flex flex-col justify-center items-center">
         <h2 className="text-3xl text-gray-600 p-2">
           Real Time Facial Recognition
         </h2>
-        <VideoCamera webcamRef={webcamRef} />
+        <div className="w-full">
+          <VideoCamera
+            webcamRef={webcamRef}
+            className="w-full h-auto object-contain"
+          />
+        </div>
       </div>
 
-      <div className="ml-4 flex flex-col items-start ">
+      <div className="mt-4 flex flex-col items-center">
         <h3 className="text-2xl text-gray-600 mb-2">Usuarios Detectados 🧑‍🤝‍🧑:</h3>
         <div className="overflow-y-auto max-h-96">
           {usersDetected.length > 0 ? (

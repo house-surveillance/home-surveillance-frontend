@@ -17,7 +17,7 @@ export const register = async (
   userName: string,
   email: string,
   password: string,
-  roles: Array<"ADMIN" | "RESIDENT">,
+  roles: Array<"ADMIN" | "RESIDENT" | "SUPERVISOR">,
   fullName: string,
   imageProfile: File,
   residenceName: string,

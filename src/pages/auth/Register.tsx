@@ -1,6 +1,9 @@
 import React, { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { register } from "../../api/auth";
+import { Role } from "../../commons/types";
+import { roles } from "../../commons/constants";
+import Loader from "../../components/loader";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -11,6 +14,9 @@ const Register = () => {
   const [residenceAddress, setResidenceAddress] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<Role[]>(["ADMIN"]);
+
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -21,13 +27,13 @@ const Register = () => {
       alert("Please select an image");
       return;
     }
-
+    setLoading(true);
     try {
       await register(
         username,
         email,
         password,
-        ["ADMIN"],
+        selectedRoles,
         fullName,
         image!,
         residenceName,
@@ -37,6 +43,8 @@ const Register = () => {
       navigate("/login");
     } catch (error: Error | any) {
       alert("Something went wrong, please try again");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,8 +77,9 @@ const Register = () => {
     <div className="flex items-center justify-center min-h-screen bg-blue-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center text-blue-600">
-          Register
+          Admin Register
         </h2>
+        {loading && <Loader />}
         <form className="space-y-4" onSubmit={handleRegister}>
           <div>
             <label
@@ -131,6 +140,45 @@ const Register = () => {
               onChange={(e) => setUsername(e.target.value)}
               required
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Roles
+            </label>
+            <p className="text-sm text-gray-500">
+              El usuario solo puede ADMIN y puede agregar ser SUPERVISOR.
+            </p>
+            <div className="mt-2 space-y-2">
+              {roles.map((role) => (
+                <div key={role} className="flex items-center">
+                  <input
+                    id={role}
+                    name="roles"
+                    type="checkbox"
+                    value={role}
+                    checked={
+                      role === "ADMIN" ? true : selectedRoles.includes(role)
+                    }
+                    onChange={(e) => {
+                      if (role !== "ADMIN") {
+                        if (e.target.checked) {
+                          setSelectedRoles([...selectedRoles, role]);
+                        } else {
+                          setSelectedRoles(
+                            selectedRoles.filter((r) => r !== role)
+                          );
+                        }
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    disabled={role === "RESIDENT"}
+                  />
+                  <label htmlFor={role} className="ml-2 text-sm text-gray-700">
+                    {role}
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div>

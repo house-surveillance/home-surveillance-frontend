@@ -26,6 +26,8 @@ const ImageUploadModal: React.FC<ModalProps> = ({
 
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const [loading, setLoading] = useState(false);
+
   const cleanImagesPreview = () => {
     setImagesPreview([null, null, null, null]);
   };
@@ -75,7 +77,7 @@ const ImageUploadModal: React.FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl font-bold mb-4">Regiter Face</h2>
+        <h2 className="text-xl font-bold mb-4">Register Face</h2>
         <p className="text-sm text-gray-500">
           1. Please select 4 images to register the face.
         </p>

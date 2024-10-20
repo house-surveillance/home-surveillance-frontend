@@ -1,6 +1,8 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { register } from "../api/auth";
+import { Role } from "../commons/types";
+import { roles } from "../commons/constants";
 
 interface ModalProps {
   isOpen: boolean;
@@ -14,6 +16,7 @@ const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<Role[]>(["RESIDENT"]);
 
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +40,7 @@ const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
         username,
         email,
         password,
-        ["RESIDENT"],
+        selectedRoles,
         fullName,
         image!,
         "0",
@@ -82,7 +85,7 @@ const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-7/12">
         <h2 className="text-2xl font-bold text-center text-blue-600">
-          Add new user
+          Add new user resident
         </h2>
         <form className="space-y-4" onSubmit={handleRegister}>
           <div>
@@ -145,6 +148,47 @@ const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
               required
               autoComplete="off"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Roles
+            </label>
+            <p className="text-sm text-gray-500">
+              El usuario a crear solo puede RESIDENT y puede agregar ser
+              SUPERVISOR.
+            </p>
+            <div className="mt-2 space-y-2">
+              {roles.map((role) => (
+                <div key={role} className="flex items-center">
+                  <input
+                    id={role}
+                    name="roles"
+                    type="checkbox"
+                    value={role}
+                    checked={
+                      role === "RESIDENT" ? true : selectedRoles.includes(role)
+                    }
+                    onChange={(e) => {
+                      if (role !== "RESIDENT") {
+                        if (e.target.checked) {
+                          setSelectedRoles([...selectedRoles, role]);
+                        } else {
+                          setSelectedRoles(
+                            selectedRoles.filter((r) => r !== role)
+                          );
+                        }
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    disabled={role === "ADMIN"}
+                  />
+                  <label htmlFor={role} className="ml-2 text-sm text-gray-700">
+                    {role}
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div>

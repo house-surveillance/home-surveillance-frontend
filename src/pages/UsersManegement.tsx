@@ -10,11 +10,14 @@ import {
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import EditUserModal from "../components/EditUser";
+import Loader from "../components/loader";
 
 export default function UsersManegement() {
   const [users, setUsers] = useState([]);
   const [faces, setFaces] = useState<File[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  const [loading, setLoading] = useState(false);
 
   const cleanFaces = () => {
     setFaces([]);
@@ -42,6 +45,7 @@ export default function UsersManegement() {
       formData.append("files", file);
     }
 
+    setLoading(true);
     try {
       await registerFaceToModel(formData);
       alert("Faces registered successfully");
@@ -51,6 +55,8 @@ export default function UsersManegement() {
       cleanFaces();
       console.error("Error registering faces:", error);
       alert(error?.message ?? "Error registering faces");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -159,6 +165,8 @@ export default function UsersManegement() {
           <UserPlusIcon className="w-5 h-5" />
         </button>
       </div>
+      {loading && <Loader />}
+
       {users.map((user: any) => (
         <div
           key={crypto.randomUUID()}

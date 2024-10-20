@@ -75,7 +75,7 @@ const EditUserModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) => {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-7/12">
         <h2 className="text-2xl font-bold text-center text-blue-600">
-          Add new user
+          Edit user
         </h2>
         <form
           name="edit-user-form"
