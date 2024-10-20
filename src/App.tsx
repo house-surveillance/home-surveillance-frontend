@@ -7,11 +7,14 @@ import UsersManegement from "./pages/UsersManegement";
 import Notifications from "./pages/Notifications";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import WelcomePage from "./pages/WelcomePage";
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<WelcomePage />} />
+        <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Layout />}>

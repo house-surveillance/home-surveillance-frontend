@@ -4,8 +4,18 @@ import Webcam from "react-webcam";
 import { VideoCamera } from "../components/VideoCamera";
 import { getUsers } from "../api/services/user";
 import { registerNotification } from "../api/services/notifications";
+import { useNavigate } from "react-router-dom";
 
 export default function RealTimeFacialRecognition() {
+  const navigate = useNavigate();
+  const user = sessionStorage?.getItem("user");
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const webcamRef = useRef<Webcam>(null);
   const [usersDetected, setUsersDetected] = useState<string[]>([]);
@@ -19,10 +29,9 @@ export default function RealTimeFacialRecognition() {
     [key: string]: number;
   }>({});
 
-  const userLoggedIn = JSON.parse(sessionStorage?.getItem("user") ?? "");
-
   useEffect(() => {
-    console.log(lastNotificationTimes);
+    if (!user) return;
+    const userLoggedIn = JSON.parse(user ?? "");
     const fetchUsers = async () => {
       try {
         const response = await getUsers(userLoggedIn?.id);
