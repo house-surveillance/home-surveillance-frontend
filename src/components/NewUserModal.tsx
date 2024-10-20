@@ -56,8 +56,9 @@ const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (
-      file?.name.split(".").pop() !== "jpg" &&
-      file?.name.split(".").pop() !== "png"
+      file?.name.split(".").pop()?.toLocaleLowerCase() !== "jpg" &&
+      file?.name.split(".").pop()?.toLocaleLowerCase() !== "png" &&
+      file?.name.split(".").pop()?.toLocaleLowerCase() !== "jpeg"
     ) {
       alert("The file must be a jpg or png image");
       return;
