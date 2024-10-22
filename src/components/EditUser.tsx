@@ -1,6 +1,8 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { updateUser } from "../api/auth";
+import { updateUser } from "../api/services/user";
+import { Role } from "../commons/types";
+import { roles } from "../commons/constants";
 
 interface ModalProps {
   isOpen: boolean;
@@ -13,9 +15,11 @@ const EditUserModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) => {
   const [fullName, setFullName] = useState(data.profile.fullName ?? "");
   const [email, setEmail] = useState(data.email ?? "");
   const [image, setImage] = useState<File | null>(null);
+
   const [imagePreview, setImagePreview] = useState<string | null>(
     data?.profile?.imageUrl ?? null
   );
+  const [selectedRoles, setSelectedRoles] = useState<Role[]>([...data.roles]);
 
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,7 +28,7 @@ const EditUserModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) => {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!image) {
+    if (!image && !imagePreview) {
       alert("Please select an image");
       return;
     }
@@ -34,7 +38,7 @@ const EditUserModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) => {
         data.id,
         username,
         email,
-        ["RESIDENT"],
+        selectedRoles,
         fullName,
         image!
       );
@@ -181,12 +185,38 @@ const EditUserModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) => {
             />
           </div>
 
+          <div className="mt-2 space-y-2">
+            {roles.map((role) => (
+              <div key={role} className="flex items-center">
+                <input
+                  id={role}
+                  name="roles"
+                  type="checkbox"
+                  value={role}
+                  checked={selectedRoles.includes(role)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedRoles([...selectedRoles, role]);
+                    } else {
+                      setSelectedRoles(selectedRoles.filter((r) => r !== role));
+                    }
+                  }}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  disabled={role === "ADMIN"}
+                />
+                <label htmlFor={role} className="ml-2 text-sm text-gray-700">
+                  {role}
+                </label>
+              </div>
+            ))}
+          </div>
+
           <div className="flex gap-1">
             <button
               type="submit"
               className="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              Register
+              Save
             </button>
 
             <button

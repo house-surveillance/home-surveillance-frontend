@@ -29,6 +29,8 @@ export default function RealTimeFacialRecognition() {
     [key: string]: number;
   }>({});
 
+  console.log(lastNotificationTimes);
+
   useEffect(() => {
     if (!user) return;
     const userLoggedIn = JSON.parse(user ?? "");
@@ -139,14 +141,7 @@ export default function RealTimeFacialRecognition() {
     if (webcamRef.current) {
       const video = webcamRef.current.video as HTMLVideoElement;
       const detections = await faceapi
-        .detectAllFaces(
-          video
-
-          // new faceapi.TinyFaceDetectorOptions({
-          //   scoreThreshold: 0.1,
-          //   inputSize: 128,
-          // })
-        )
+        .detectAllFaces(video)
         .withFaceLandmarks()
         .withFaceDescriptors();
 

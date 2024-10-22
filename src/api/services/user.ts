@@ -28,3 +28,32 @@ export const deleteUser = async (id: any) => {
     throw error;
   }
 };
+
+export const updateUser = async (
+  id: string,
+  userName: string,
+  email: string,
+  roles: Array<"ADMIN" | "RESIDENT" | "SUPERVISOR">,
+  fullName: string,
+  imageProfile: File
+) => {
+  try {
+    const formData = new FormData();
+    formData.append("userName", userName);
+    formData.append("email", email);
+    formData.append("roles", roles.join(","));
+    formData.append("fullName", fullName);
+    if (imageProfile) {
+      formData.append("file", imageProfile);
+    }
+
+    const response = await axiosConfig.put("/users" + `/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

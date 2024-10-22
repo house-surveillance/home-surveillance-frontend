@@ -10,7 +10,8 @@ interface ModalProps {
 }
 
 const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState("Nuevo" + Date.now());
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -132,11 +133,8 @@ const NewUserModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div>
-            <label
-              htmlFor="username1"
-              className="block text-sm font-medium text-gray-700"
-            >
-              User name
+            <label className="block text-sm font-medium text-gray-700">
+              user Name
             </label>
             <input
               type="text"

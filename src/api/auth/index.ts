@@ -54,33 +54,6 @@ export const register = async (
   }
 };
 
-export const updateUser = async (
-  id: string,
-  userName: string,
-  email: string,
-  roles: Array<"ADMIN" | "RESIDENT">,
-  fullName: string,
-  imageProfile: File
-) => {
-  try {
-    const formData = new FormData();
-    formData.append("userName", userName);
-    formData.append("email", email);
-    formData.append("roles", roles.join(","));
-    formData.append("fullName", fullName);
-    formData.append("file", imageProfile);
-
-    const response = await axiosConfig.put(AUTH_URL + `/${id}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const logout = () => {
   sessionStorage.removeItem("user");
 };

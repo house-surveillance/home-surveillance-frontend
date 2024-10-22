@@ -26,8 +26,6 @@ const ImageUploadModal: React.FC<ModalProps> = ({
 
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const [loading, setLoading] = useState(false);
-
   const cleanImagesPreview = () => {
     setImagesPreview([null, null, null, null]);
   };
@@ -42,9 +40,8 @@ const ImageUploadModal: React.FC<ModalProps> = ({
     (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (
-        file?.name.split(".").pop()?.toLocaleLowerCase() !== "jpg" &&
-        file?.name.split(".").pop()?.toLocaleLowerCase() !== "png" &&
-        file?.name.split(".").pop()?.toLocaleLowerCase() !== "jpeg"
+        file?.name.split(".").pop() !== "jpg" &&
+        file?.name.split(".").pop() !== "png"
       ) {
         alert("The file must be a jpg or png image");
         return;

@@ -3,7 +3,7 @@ import Axios from "axios";
 
 const axios = Axios.create({});
 
-const serverUrl = "http://192.168.18.5:3000/api/v1"; //"https://c6d1-179-6-4-169.ngrok-free.app/api/v1"; //192.168.18.5
+const serverUrl = "https://065f-38-253-146-9.ngrok-free.app/api/v1"; //"https://c6d1-179-6-4-169.ngrok-free.app/api/v1"; //192.168.18.5
 export const baseURL = `${serverUrl}`;
 
 axios.defaults.timeout = 120000; // Milliseconds
